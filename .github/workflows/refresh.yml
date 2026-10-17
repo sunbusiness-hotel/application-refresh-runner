@@ -7,7 +7,9 @@ on:
         default: false
   schedule:
     - cron: '3-58/5 * * * *'
-permissions: {}
+    - cron: '0 16 * * *'
+permissions:
+  contents: write
 concurrency:
   group: refresh
   cancel-in-progress: false
@@ -34,4 +36,28 @@ jobs:
               zipfile.ZipFile(io.BytesIO(source)).extractall(directory)
               subprocess.run(['python3', directory + '/cloud_collect.py'], check=True,
                              timeout=180, cwd=directory)
+          PY
+      - name: Record daily completion
+        env:
+          REFRESH_REPO: ${{ github.repository }}
+          REFRESH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64, datetime, json, os, urllib.request, urllib.error
+          url = 'https://api.github.com/repos/' + os.environ['REFRESH_REPO'] + '/contents/last-success.txt'
+          headers = {'Authorization': 'Bearer ' + os.environ['REFRESH_TOKEN'],
+                     'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}
+          content = (datetime.datetime.now(datetime.timezone.utc).date().isoformat() + '\n').encode()
+          update = {'message': 'Record daily application refresh',
+                    'content': base64.b64encode(content).decode()}
+          try:
+              prior = json.load(urllib.request.urlopen(urllib.request.Request(url, headers=headers)))
+              if base64.b64decode(prior['content']) == content:
+                  raise SystemExit(0)
+              update['sha'] = prior['sha']
+          except urllib.error.HTTPError as error:
+              if error.code != 404:
+                  raise
+          urllib.request.urlopen(urllib.request.Request(url, data=json.dumps(update).encode(),
+                                 headers=headers, method='PUT')).close()
           PY
