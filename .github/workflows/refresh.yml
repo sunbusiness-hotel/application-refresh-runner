@@ -5,6 +5,9 @@ on:
       fresh_session:
         type: boolean
         default: false
+      scheduled_at:
+        type: string
+        default: ''
   schedule:
     - cron: '3-58/5 * * * *'
     - cron: '0 16 * * *'
@@ -22,6 +25,7 @@ jobs:
         env:
           APP_URL: ${{ secrets.APP_URL }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
+          APP_SCHEDULED_AT: ${{ inputs.scheduled_at }}
           APP_FORCE_LOGIN: ${{ inputs.fresh_session && '1' || '0' }}
         run: |
           python3 - <<'PY'
