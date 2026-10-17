@@ -1,6 +1,10 @@
 name: Refresh published application data
 on:
   workflow_dispatch:
+    inputs:
+      fresh_session:
+        type: boolean
+        default: false
   schedule:
     - cron: '3-58/5 * * * *'
 permissions: {}
@@ -16,6 +20,7 @@ jobs:
         env:
           APP_URL: ${{ secrets.APP_URL }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
+          APP_FORCE_LOGIN: ${{ inputs.fresh_session && '1' || '0' }}
         run: |
           python3 - <<'PY'
           import io, os, subprocess, tempfile, urllib.request, zipfile
