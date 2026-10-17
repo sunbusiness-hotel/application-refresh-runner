@@ -1,0 +1,32 @@
+name: Refresh published application data
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '3-58/5 * * * *'
+permissions: {}
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Refresh application
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import io, os, subprocess, tempfile, urllib.request, zipfile
+          request = urllib.request.Request(
+              os.environ['APP_URL'] + '/internal/collector.zip',
+              headers={'Authorization': 'Bearer ' + os.environ['APP_TOKEN'],
+                       'User-Agent': 'application-refresh/1.0'})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              source = response.read()
+          with tempfile.TemporaryDirectory() as directory:
+              zipfile.ZipFile(io.BytesIO(source)).extractall(directory)
+              subprocess.run(['python3', directory + '/cloud_collect.py'], check=True,
+                             timeout=180, cwd=directory)
+          PY
