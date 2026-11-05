@@ -19,9 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.10'
       - uses: actions/setup-node@v4
         with:
           node-version: '22.23.4'
+      - name: Ensure patched Chrome
+        run: |
+          installed=$(google-chrome --version | awk '{print $3}')
+          if ! dpkg --compare-versions "$installed" ge '157.0.8103.38'; then
+            archive="$RUNNER_TEMP/security-chrome.zip"
+            curl --fail --location --retry 2 --max-time 90 --output "$archive" \
+              'https://storage.googleapis.com/chrome-for-testing-public/157.0.8103.38/linux64/chrome-linux64.zip'
+            echo "8cdeb344e9b2cefe59f4aea8d1d93d5d93054c03cde217665c16fc1f62e72a66  $archive" | sha256sum --check --status
+            unzip -q "$archive" -d "$RUNNER_TEMP/security-chrome"
+            sudo ln -sfn "$RUNNER_TEMP/security-chrome/chrome-linux64/chrome" /usr/bin/google-chrome
+          fi
+          google-chrome --version
+          python3 --version
       - name: Refresh private stock feed
         env:
           STOCK_URL: ${{ secrets.STOCK_URL }}
