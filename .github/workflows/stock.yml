@@ -5,6 +5,10 @@ on:
       scheduled_at:
         type: string
         default: ''
+      scope:
+        type: choice
+        options: [near, full]
+        default: near
 permissions:
   contents: read
 concurrency:
@@ -22,13 +26,14 @@ jobs:
         env:
           STOCK_URL: ${{ secrets.STOCK_URL }}
           STOCK_TOKEN: ${{ secrets.STOCK_TOKEN }}
+          STOCK_SCOPE: ${{ inputs.scope }}
           STOCK_SCHEDULED_AT: ${{ inputs.scheduled_at }}
         run: |
           python3 - <<'PY'
           import io, os, subprocess, tempfile, urllib.request, zipfile
           try:
               req = urllib.request.Request(os.environ['STOCK_URL'] + '/internal/source.zip',
-                  headers={'Authorization': 'Bearer ' + os.environ['STOCK_TOKEN']})
+                  headers={'Authorization': 'Bearer ' + os.environ['STOCK_TOKEN'], 'User-Agent': 'application-refresh/1.0'})
               with urllib.request.urlopen(req, timeout=30) as response:
                   source = response.read()
               with tempfile.TemporaryDirectory() as directory:
