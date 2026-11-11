@@ -24,7 +24,7 @@ jobs:
           python-version: '3.14.10'
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.23.4'
+          node-version: '22.23.5'
       - name: Ensure patched Chrome
         run: |
           installed=$(google-chrome --version | awk '{print $3}')
