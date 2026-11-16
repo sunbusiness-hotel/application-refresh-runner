@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14.10'
@@ -44,6 +45,12 @@ jobs:
               subprocess.run(['python3', directory + '/cloud_collect.py'], check=True,
                              timeout=180, cwd=directory)
           PY
+      - name: Verify sheet synchronization
+        env:
+          SHEET_SYNC_URL: ${{ secrets.SHEET_SYNC_URL }}
+          SHEET_SYNC_TOKEN: ${{ secrets.SHEET_SYNC_TOKEN }}
+          SHEET_SYNC_SOURCE: availability
+        run: python3 sync-sheet.py
       - name: Record daily completion
         env:
           REFRESH_REPO: ${{ github.repository }}

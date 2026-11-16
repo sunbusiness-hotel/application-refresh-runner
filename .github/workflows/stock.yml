@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14.10'
@@ -61,3 +62,9 @@ jobs:
               print('Stock refresh failed; previous verified feed retained')
               raise SystemExit(1)
           PY
+      - name: Verify sheet synchronization
+        env:
+          SHEET_SYNC_URL: ${{ secrets.SHEET_SYNC_URL }}
+          SHEET_SYNC_TOKEN: ${{ secrets.SHEET_SYNC_TOKEN }}
+          SHEET_SYNC_SOURCE: stock
+        run: python3 sync-sheet.py

@@ -7,3 +7,7 @@ application data, credentials, artifacts, or caches. Logs contain only completio
 It uses standard Ubuntu runners, which are free for public repositories.
 
 A daily completion date is committed after a successful refresh, keeping the operational status visible and scheduled publishing active. No application data is included.
+
+After successful collection, `sync-sheet.py` calls the existing private spreadsheet service with a source selector only. Its separate callback credential cannot use management actions or supply cell values. The service fetches verified current data and checks saved cell values before acknowledging success. A failed/ambiguous acknowledgement is retried once and fails the job if still unverified. Subsequent scheduled runs retry normally. `SHEET_SYNC_URL` and `SHEET_SYNC_TOKEN` are repository secrets. No extra polling workflow or new paid resource is added.
+
+Run `python3 -m unittest test_sync_sheet.py` before changing this callback.
