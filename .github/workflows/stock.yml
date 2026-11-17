@@ -29,11 +29,11 @@ jobs:
       - name: Ensure patched Chrome
         run: |
           installed=$(google-chrome --version | awk '{print $3}')
-          if ! dpkg --compare-versions "$installed" ge '157.0.8103.78'; then
+          if ! dpkg --compare-versions "$installed" ge '158.0.8127.36'; then
             archive="$RUNNER_TEMP/security-chrome.zip"
             curl --fail --location --retry 2 --max-time 90 --output "$archive" \
-              'https://storage.googleapis.com/chrome-for-testing-public/157.0.8103.78/linux64/chrome-linux64.zip'
-            echo "9223832977a13db3646201b1341c1f9cf08afa3ceae92540116d7b0c062364fb  $archive" | sha256sum --check --status
+              'https://storage.googleapis.com/chrome-for-testing-public/158.0.8127.36/linux64/chrome-linux64.zip'
+            echo "dba9cc838e1ce269c33ea68170881127bd15d078fc3ca5891c90802819a4d7c7  $archive" | sha256sum --check --status
             unzip -q "$archive" -d "$RUNNER_TEMP/security-chrome"
             sudo ln -sfn "$RUNNER_TEMP/security-chrome/chrome-linux64/chrome" /usr/bin/google-chrome
           fi
