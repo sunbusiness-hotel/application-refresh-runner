@@ -1,0 +1,45 @@
+name: Refresh competitor survey
+on:
+  schedule:
+    - cron: '11 * * * *'
+  workflow_dispatch:
+    inputs:
+      smoke:
+        description: Collect one day for deployment verification
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: competitor-survey
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Run the authenticated survey collector
+        env:
+          COMPETITOR_URL: ${{ secrets.COMPETITOR_URL }}
+          COMPETITOR_TOKEN: ${{ secrets.COMPETITOR_TOKEN }}
+          COMPETITOR_SMOKE: ${{ inputs.smoke }}
+        run: |
+          python3 - <<'PY'
+          import io, os, subprocess, tempfile, urllib.request, zipfile
+          try:
+              req = urllib.request.Request(os.environ['COMPETITOR_URL'] + '/internal/source.zip',
+                  headers={'Authorization':'Bearer ' + os.environ['COMPETITOR_TOKEN'], 'User-Agent':'application-refresh/1.0'})
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  source = response.read()
+              with tempfile.TemporaryDirectory() as directory:
+                  archive = zipfile.ZipFile(io.BytesIO(source))
+                  expected = {'run.py', 'competitor_capacity.py', 'competitor_research.py', 'competitor_feed.py',
+                    'mapping.json', 'short-names.json'}
+                  if set(archive.namelist()) != expected:
+                      raise ValueError('Invalid source archive')
+                  archive.extractall(directory)
+                  subprocess.run(['python3','run.py'], cwd=directory, check=True, timeout=52*60)
+          except Exception:
+              print('Survey or delivery failed; contact the operator if it persists')
+              raise SystemExit(1)
+          PY
