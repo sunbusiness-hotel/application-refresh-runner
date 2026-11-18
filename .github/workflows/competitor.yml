@@ -11,9 +11,6 @@ on:
         default: false
 permissions:
   contents: read
-concurrency:
-  group: competitor-survey
-  cancel-in-progress: false
 jobs:
   refresh:
     # Reuse the existing Cloudflare clock's :05 dispatch. The stock task
@@ -24,6 +21,9 @@ jobs:
        github.event.workflow_run.head_repository.full_name == github.repository &&
        github.event.workflow_run.head_branch == github.event.repository.default_branch &&
        contains(github.event.workflow_run.created_at, ':05:'))
+    concurrency:
+      group: competitor-survey
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 55
     steps:
