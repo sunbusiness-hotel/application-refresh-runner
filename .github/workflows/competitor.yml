@@ -1,8 +1,7 @@
 name: Refresh competitor survey
 on:
-  workflow_run:
-    workflows: ['Refresh stock feed']
-    types: [requested]
+  schedule:
+    - cron: '5 * * * *'
   workflow_dispatch:
     inputs:
       smoke:
@@ -13,14 +12,6 @@ permissions:
   contents: read
 jobs:
   refresh:
-    # Reuse the existing Cloudflare clock's :05 dispatch. The stock task
-    # continues independently; its result and artifacts are never consumed.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.event == 'workflow_dispatch' &&
-       github.event.workflow_run.head_repository.full_name == github.repository &&
-       github.event.workflow_run.head_branch == github.event.repository.default_branch &&
-       contains(github.event.workflow_run.created_at, ':05:'))
     concurrency:
       group: competitor-survey
       cancel-in-progress: false
@@ -32,7 +23,6 @@ jobs:
           COMPETITOR_URL: ${{ secrets.COMPETITOR_URL }}
           COMPETITOR_TOKEN: ${{ secrets.COMPETITOR_TOKEN }}
           COMPETITOR_SMOKE: ${{ inputs.smoke }}
-          COMPETITOR_CLOCK_RUN: ${{ github.event.workflow_run.id }}
         run: |
           python3 - <<'PY'
           import io, os, subprocess, tempfile, urllib.request, zipfile
