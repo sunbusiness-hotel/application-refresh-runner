@@ -1,8 +1,6 @@
 name: Refresh competitor survey
 run-name: ${{ inputs.scheduled_at && format('Scheduled survey · {0}', inputs.scheduled_at) || 'Refresh competitor survey' }}
 on:
-  schedule:
-    - cron: '43 * * * *'
   workflow_dispatch:
     inputs:
       scheduled_at:
