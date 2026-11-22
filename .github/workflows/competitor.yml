@@ -8,6 +8,10 @@ on:
         description: Collect one day for deployment verification
         type: boolean
         default: false
+      repair_date:
+        description: Repair one stay date (YYYY-MM-DD)
+        type: string
+        required: false
 permissions:
   contents: read
 jobs:
@@ -23,6 +27,7 @@ jobs:
           COMPETITOR_URL: ${{ secrets.COMPETITOR_URL }}
           COMPETITOR_TOKEN: ${{ secrets.COMPETITOR_TOKEN }}
           COMPETITOR_SMOKE: ${{ inputs.smoke }}
+          COMPETITOR_REPAIR_DATE: ${{ inputs.repair_date }}
         run: |
           python3 - <<'PY'
           import io, os, subprocess, tempfile, urllib.request, zipfile
